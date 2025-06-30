@@ -454,31 +454,6 @@ function generateMockSimulationResults(guildId: string, config: any): Simulation
   // Generate workflow metrics
   const workflowMetrics = {
     average_response_time_ms: Math.floor(Math.random() * 500) + 300,
-    success_rate: Math.floor(Math.random() * 10) + 90,
-    total_operations: Math.floor(Math.random() * 100) + 50,
-    peak_concurrent_operations: Math.floor(Math.random() * 20) + 5,
-    ai_model: aiModel,
-    token_usage: Math.floor(Math.random() * 10000) + 5000
-  };
-  
-  // If Slack is enabled, send a message with the simulation results
-  if (slackEnabled && slackWebhookUrl) {
-    try {
-      fetch(slackWebhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          text: `✅ *GenesisOS Simulation Results*\n\nGuild: ${guildId}\nTime: ${new Date().toLocaleString()}\nModel: ${aiModel}\nExecution Time: ${executionTime.toFixed(2)}s\nSuccess Rate: ${workflowMetrics.success_rate}%\n\n*Insights:*\n${insights.map(insight => `• ${insight}`).join('\n')}`
-        })
-      }).then(() => {
-        console.log('✅ Simulation results sent to Slack successfully');
-      }).catch(error => {
-        console.error('Failed to send simulation results to Slack:', error);
-      });
-    } catch (error) {
-      console.error('Failed to send simulation results to Slack:', error);
     }
   }
   

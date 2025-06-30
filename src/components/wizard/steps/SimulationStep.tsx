@@ -89,26 +89,6 @@ export const SimulationStep: React.FC = () => {
       // Run the simulation with enhanced config
       await runSimulation();
       
-      // Create enhanced simulation config
-      const simulationConfig = {
-        blueprint_id: blueprint?.id,
-        agents: blueprint?.suggested_structure.agents || [],
-        workflows: blueprint?.suggested_structure.workflows || [],
-        test_credentials: credentials,
-        simulation_type: simulationSettings.simulationType,
-        parameters: {
-          duration_minutes: simulationSettings.simulationDuration / 60, // Convert seconds to minutes
-          load_factor: 1.0,
-          error_injection: true,
-          performance_profiling: true,
-          ai_model: simulationSettings.llmChoice,
-          slackEnabled: simulationSettings.slackEnabled,
-          slackWebhookUrl: simulationSettings.slackWebhookUrl
-        }
-      };
-      
-      // Run the simulation with enhanced config
-      await runSimulation();
     } catch (error) {
       console.error('Simulation failed:', error);
     }
