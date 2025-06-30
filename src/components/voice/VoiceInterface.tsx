@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Volume2, VolumeX, Phone, PhoneOff, Brain, AudioWaveform as Waveform, Settings, Play, Pause, RotateCcw } from 'lucide-react';
 import { GlassCard } from '../ui/GlassCard';
 import { HolographicButton } from '../ui/HolographicButton';
+import { voiceService } from '../../services/voiceService';
 
 interface VoiceInterfaceProps {
   agentId?: string;
@@ -43,7 +44,8 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
   const recognitionRef = useRef<any>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
-
+  
+  // Initialize WebSocket connection for real-time voice
   useEffect(() => {
     if (isVisible) {
       initializeVoiceInterface();

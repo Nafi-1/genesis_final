@@ -19,6 +19,8 @@ export const voiceService = {
   ): Promise<string> => {
     try {
       // Try to use the real API endpoint
+      console.log('🔊 Synthesizing speech:', text.substring(0, 50) + '...');
+      
       try {
         const response = await api.post('/agent/voice/synthesize', {
           text,
@@ -43,7 +45,9 @@ export const voiceService = {
       // Fall back to Supabase Edge Function if available
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
+      console.log('🔊 Attempting to use Supabase Edge Function for voice synthesis');
+
       if (supabaseUrl && supabaseAnonKey && 
           !supabaseUrl.includes('your_') && !supabaseAnonKey.includes('your_')) {
         try {
