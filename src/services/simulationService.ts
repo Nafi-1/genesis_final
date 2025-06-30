@@ -39,32 +39,6 @@ export const simulationService = {
       }
     }
     // Check if Slack integration is enabled
-    const slackEnabled = config.parameters?.slackEnabled || false;
-    const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
-    
-    // If Slack is enabled and we have a webhook URL, send a test message
-    if (slackEnabled && slackWebhookUrl) {
-      try {
-        console.log('🔄 Sending test message to Slack webhook');
-        
-        // Send a test message to Slack
-        await fetch(slackWebhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            text: `🧪 *GenesisOS Simulation Started*\n\nGuild: ${guildId}\nTime: ${new Date().toLocaleString()}\nModel: ${config.parameters?.ai_model || 'gemini-flash'}\nType: ${config.test_scenarios?.[0] || 'comprehensive'}`
-          })
-        });
-        
-        console.log('✅ Test message sent to Slack successfully');
-      } catch (error) {
-        console.error('Failed to send test message to Slack:', error);
-      }
-    }
-    
-    try {
       // Try to use the orchestrator API
       const response = await api.post('/api/simulation/run', {
         ...config,
