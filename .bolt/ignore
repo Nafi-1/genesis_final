@@ -1,0 +1,119 @@
+# GenesisOS .bolt/ignore file
+# Ignore large files, build artifacts, and non-essential files to reduce token consumption
+
+# Node modules and package management
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.nuxt/
+.output/
+
+# Python virtual environments and cache
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Environment and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.history/
+
+# Large data files
+*.csv
+*.json
+*.sqlite
+*.db
+
+# Specific project files to ignore
+orchestrator/node_modules/
+orchestrator/dist/
+agents/agent_service/__pycache__/
+agents/agent_service/venv/
+agents/agent_service/lib/__pycache__/
+
+# Large generated files
+*.map
+*.min.js
+*.min.css
+
+# Specific large files in the project
+package-lock.json
+orchestrator/package-lock.json
+bash.exe.stackdump
+
+# Temporary files
+.tmp/
+.temp/
+.cache/
+.eslintcache
+
+# Specific directories with large content
+public/assets/
+public/images/
+public/static/
+
+# Bolt internal files (except the ignore file itself)
+.bolt/config.json
+.bolt/prompt
+
+# Supabase migrations (only show when explicitly needed)
+supabase/migrations/*.sql
+
+# Documentation files (can be included when needed)
+*.md
+!README.md
+!DEVELOPMENT_ROADMAP.md
+!IMPLEMENTATION_BLUEPRINT.md
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__/
+**/__mocks__/
+
+# Backup files
+**/*.bak
+**/*~
+**/*.backup
+
+# Large TypeScript declaration files
+**/*.d.ts
