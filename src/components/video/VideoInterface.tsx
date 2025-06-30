@@ -149,21 +149,62 @@ export const VideoInterface: React.FC<VideoInterfaceProps> = ({
     }, 500);
     
     try {
-      const result = await videoService.generateVideo(scriptText, {
-        avatarId: selectedAvatar.id,
-        metadata: {
-          agentId,
-          agentName,
-          timestamp: new Date().toISOString()
+      // Try to use the agent service directly first
+      let result;
+      try {
+        const agentServiceUrl = import.meta.env.VITE_AGENT_SERVICE_URL || 'http://localhost:8001';
+        console.log(`🎬 Attempting to generate video via agent service at ${agentServiceUrl}`);
+        
+        const response = await fetch(`${agentServiceUrl}/agent/video/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: scriptText,
+            avatar_id: selectedAvatar.id,
+            metadata: {
+              agentId,
+              agentName,
+              timestamp: new Date().toISOString()
+            }
+          })
+        });
+        
+        if (response.ok) {
+          result = await response.json();
+        } else {
+          throw new Error(`API responded with status ${response.status}`);
         }
-      });
+      } catch (error) {
+        console.log('Falling back to video service:', error);
+        result = await videoService.generateVideo(scriptText, {
+          avatarId: selectedAvatar.id,
+          metadata: {
+            agentId,
+            agentName,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
       
       console.log('Video generation initiated:', result);
       
       // Poll for status until complete
       const checkStatus = async () => {
         // Use the correct property from VideoGenerationResult
-        const status = await videoService.getVideoStatus(result.video.id);
+        let status;
+        try {
+          const agentServiceUrl = import.meta.env.VITE_AGENT_SERVICE_URL || 'http://localhost:8001';
+          const response = await fetch(`${agentServiceUrl}/agent/video/status/${result.video.id}`);
+          
+          if (response.ok) {
+            status = await response.json();
+          } else {
+            throw new Error(`API responded with status ${response.status}`);
+          }
+        } catch (error) {
+          console.log('Falling back to video service for status check:', error);
+          status = await videoService.getVideoStatus(result.video.id);
+        }
         
         if (status.status === 'completed' && status.url) {
           clearInterval(generationTimerRef.current!);

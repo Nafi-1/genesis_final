@@ -154,7 +154,46 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
       const audioUrl = URL.createObjectURL(audioBlob);
       
       if (audioRef.current) {
-        audioRef.current.src = audioUrl;
+      let agentResponse;
+      
+      // Try to use the real API service if available
+      try {
+        const agentServiceUrl = import.meta.env.VITE_AGENT_SERVICE_URL || 'http://localhost:8001';
+        console.log(`🔄 Attempting to chat with agent at ${agentServiceUrl}`);
+        
+        const response = await fetch(`${agentServiceUrl}/agent/${agentId || 'agent-simulator'}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: text,
+            session_id: `voice-${Date.now()}`,
+            context: {
+              voice_enabled: true
+            }
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          agentResponse = data.response;
+          
+          // If audio is available, use it
+          if (data.audio) {
+            // Play the audio directly
+            if (audioRef.current) {
+              audioRef.current.src = `data:audio/mpeg;base64,${data.audio}`;
+              audioRef.current.onended = () => setIsSpeaking(false);
+              await audioRef.current.play();
+              return; // Skip the rest of the function since we're playing the audio
+            }
+          }
+        } else {
+          throw new Error(`API responded with status ${response.status}`);
+        }
+      } catch (error) {
+        console.log('Using fallback response generation:', error);
+        agentResponse = await generateAgentResponse(text);
+      }
         await audioRef.current.play();
       }
     } catch (error) {
@@ -281,6 +320,9 @@ export const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
       
       wsRef.current.send(JSON.stringify(message));
     }
+
+    // Process the voice command with the agent service
+    processAgentInput(transcript);
   };
 
   const addMessage = (type: 'user' | 'agent' | 'system', content: string, sender?: string) => {
