@@ -12,7 +12,7 @@ export const simulationService = {
   runSimulation: async (guildId: string, config: SimulationConfig): Promise<SimulationResult> => {
     console.log(`🧪 Running enhanced simulation for guild: ${guildId} with config:`, config);
 
-
+    try {
     // Check if Slack integration is enabled
     const slackEnabled = config.parameters?.slackEnabled || false;
     const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
