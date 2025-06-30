@@ -334,12 +334,6 @@ export interface SimulationConfig {
     ai_model?: string;
     slackEnabled?: boolean;
     slackWebhookUrl?: string;
-    network_latency?: boolean;
-    api_timeouts?: boolean;
-    performance_profiling?: boolean;
-    ai_model?: string;
-    slackEnabled?: boolean;
-    slackWebhookUrl?: string;
   };
   test_scenarios?: string[];
 }
@@ -365,8 +359,6 @@ export interface SimulationResult {
     success_rate: number;
     total_operations: number;
     peak_concurrent_operations: number;
-    ai_model?: string;
-    token_usage?: number;
     ai_model?: string;
     token_usage?: number;
   };
@@ -454,8 +446,12 @@ function generateMockSimulationResults(guildId: string, config: any): Simulation
   // Generate workflow metrics
   const workflowMetrics = {
     average_response_time_ms: Math.floor(Math.random() * 500) + 300,
-    }
-  }
+    success_rate: Math.floor(Math.random() * 10) + 90,
+    total_operations: Math.floor(Math.random() * 100) + 50,
+    peak_concurrent_operations: Math.floor(Math.random() * 20) + 5,
+    ai_model: aiModel,
+    token_usage: Math.floor(Math.random() * 5000) + 1000
+  };
   
   // Ensure insights is a flat string array
   const flatInsights: string[] = Array.isArray(insights[0]) ? ((insights as unknown as string[][]).flat() as unknown as string[]) : (insights as unknown as string[]);
