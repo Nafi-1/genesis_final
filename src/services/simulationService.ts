@@ -13,6 +13,7 @@ export const simulationService = {
     console.log(`🧪 Running enhanced simulation for guild: ${guildId} with config:`, config);
 
     try {
+    try {
     // Check if Slack integration is enabled
     const slackEnabled = config.parameters?.slackEnabled || false;
     const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
@@ -36,9 +37,6 @@ export const simulationService = {
         console.log('✅ Test message sent to Slack successfully');
       } catch (error) {
         console.error('Failed to send test message to Slack:', error);
-      }
-    }
-    // Check if Slack integration is enabled
       // Try to use the orchestrator API
       const response = await api.post('/api/simulation/run', {
         ...config,
