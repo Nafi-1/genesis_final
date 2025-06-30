@@ -56,6 +56,96 @@ class VoiceService {
   /**
    * Synthesize speech directly using ElevenLabs API
    */
+  synthesizeDirectly: async (
+    text: string,
+    voiceId?: string,
+    options?: {
+      stability?: number;
+      similarityBoost?: number;
+      style?: number;
+      speakerBoost?: boolean;
+    }
+  ): Promise<string> => {
+    try {
+      const voice = voiceId || ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+      
+      // Use direct HTTP client
+      const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice}`;
+      const response = await axios.post(url, {
+        text,
+        model_id: "eleven_monolingual_v1",
+        voice_settings: {
+          stability: options?.stability || 0.5,
+          similarity_boost: options?.similarityBoost || 0.75,
+          style: options?.style || 0.0,
+          use_speaker_boost: options?.speakerBoost !== false
+        }
+      }, {
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': voiceService.client.apiKey
+        },
+        responseType: 'arraybuffer'
+      });
+
+      // Convert arraybuffer to base64
+      const audioBase64 = Buffer.from(response.data).toString('base64');
+
+      // Convert to data URL for direct use in browsers
+      return `data:audio/mpeg;base64,${audioBase64}`;
+    } catch (error: any) {
+      console.error('❌ Direct speech synthesis failed:', error);
+      
+      // Fall back to agent service if direct synthesis fails
+      console.log('⚠️ Falling back to agent service for speech synthesis');
+      return await voiceService.synthesizeViaAgentService(text, voiceId, options);
+    }
+  },
+  
+  /**
+   * Synthesize speech via the agent service
+   */
+  synthesizeViaAgentService: async (
+    text: string,
+    voiceId?: string,
+    options?: {
+      stability?: number;
+      similarityBoost?: number;
+      style?: number;
+      speakerBoost?: boolean;
+    }
+  ): Promise<string> => {
+    try {
+      const response = await axios.post(`${AGENT_SERVICE_URL}/voice/synthesize`, {
+        text,
+        voice_id: voiceId,
+        stability: options?.stability,
+        similarity_boost: options?.similarityBoost,
+        style: options?.style,
+        use_speaker_boost: options?.speakerBoost
+      });
+      
+      if (!response.data.audio) {
+        throw new Error('No audio data received from agent service');
+      }
+      
+      // Return as data URL
+      return `data:audio/mpeg;base64,${response.data.audio}`;
+    } catch (error: any) {
+      console.error('❌ Agent service speech synthesis failed:', error);
+      
+      if (error.response) {
+        throw new Error(`Agent service error: ${error.response.status} ${error.response.data?.error || error.message}`);
+      }
+      
+      throw error;
+    }
+  },
+  
+  /**
+   * Synthesize speech directly using ElevenLabs API
+   */
   private async synthesizeDirectly(
     text: string,
     voiceId?: string,

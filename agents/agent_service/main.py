@@ -15,6 +15,7 @@ from lib.memory_service import get_memory_service
 from lib.agent_manager import get_agent_manager
 from lib.gemini_service import get_gemini_service
 from lib.voice_service import get_voice_service
+import json
 
 # Load environment variables
 load_dotenv()
@@ -205,6 +206,63 @@ async def get_version():
         "version": API_VERSION,
         "build": os.getenv("BUILD_VERSION", "development")
     }
+
+# Chat with agent endpoint
+@app.post("/agent/{agent_id}/chat", response_model=dict)
+async def chat_with_agent(agent_id: str, request: dict = Body(...)):
+    try:
+        message = request.get("message") or request.get("content")
+        session_id = request.get("session_id", f"session-{int(time.time())}")
+        history = request.get("history", [])
+        
+        if not message:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Message content is required"}
+            )
+        
+        logger.info(f"Chat request for agent {agent_id} with message: {message[:50]}...")
+        
+        # Create context with session info
+        context = {
+            "session_id": session_id,
+            "history": history,
+            "voice_enabled": True,
+            "memory_enabled": True
+        }
+        
+        # Execute the agent
+        output, chain_of_thought = await agent_manager.execute_agent(
+            agent_id=agent_id,
+            input_text=message,
+            context=context
+        )
+        
+        # Generate voice if enabled
+        audio_data = None
+        if context.get("voice_enabled", False) and voice_service.enabled:
+            try:
+                audio_data = await voice_service.synthesize_speech(
+                    text=output,
+                    voice_id=context.get("voice_id")
+                )
+            except Exception as e:
+                logger.error(f"Failed to generate voice: {e}")
+        
+        # Return the response
+        return {
+            "agent_id": agent_id,
+            "response": output,
+            "audio": audio_data,
+            "session_id": session_id,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Error in chat with agent: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Chat failed: {str(e)}"}
+        )
 
 # Execute agent endpoint
 @app.post("/agent/{agent_id}/execute", response_model=AgentOutput)

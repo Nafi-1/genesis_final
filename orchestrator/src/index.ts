@@ -20,6 +20,7 @@ import analyticsService from './services/analyticsService';
 import voiceService from './services/voiceService';
 import videoService from './services/videoService';
 import communicationService from './services/communicationService';
+import communicationService from './services/communicationService';
 import { error } from 'console';
 
 // Configure rate limiting
@@ -150,7 +151,7 @@ app.get(["/wizard/health", "/api/wizard/health"], async (req, res) => {
     status: "healthy",
     message: "GenesisOS API is running",
     version: "1.0.0",
-    phase: "4 - AI & Automation Core",
+    phase: "4 - AI & Automation Core with Simulation",
     integrations: {
       gemini: gemini_configured ? "configured" : "not configured",
       elevenlabs: elevenlabs_configured ? "configured" : "not configured",
@@ -164,7 +165,8 @@ app.get(["/wizard/health", "/api/wizard/health"], async (req, res) => {
       workflow_execution: true,
       simulation: true,
       agent_memory: true,
-      voice_synthesis: true
+      voice_synthesis: true,
+      video_generation: true
     }
   });
 });
@@ -757,7 +759,7 @@ app.post(['/simulation/run', '/api/simulation/run'], async (req, res) => {
     
     try {
       // Run the simulation
-      const results = await simulationService.runSimulation(config);
+      const results = await simulationService.runSimulation(config.guild_id, config);
       
       console.log(`✅ Simulation completed: ${results.id}`);
       
@@ -789,7 +791,7 @@ app.get('/simulation/:simulationId', async (req, res) => {
     }
     
     // Get the simulation results
-    const results = simulationService.getSimulationResults(simulationId);
+    const results = await simulationService.getSimulationStatus(simulationId);
     
     if (!results) {
       return res.status(404).json({

@@ -5,6 +5,10 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_FUNCTION_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_FUNCTION_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
 /**
  * Service for video generation and management
  */
@@ -35,7 +39,43 @@ class VideoService {
       console.error('❌ Error in video generation:', error);
       throw new Error(`Video generation failed: ${error.message}`);
     }
-  }
+
+      // Try to check status via Supabase Edge Function if configured
+      if (SUPABASE_URL && SUPABASE_FUNCTION_KEY && !SUPABASE_URL.includes('your_')) {
+        return await videoService.getVideoStatusViaEdgeFunction(videoId);
+      }
+    } catch (error: any) {
+      console.error('❌ Edge function video generation failed:', error);
+      
+      // Fall back to mock response
+      console.log('⚠️ Falling back to mock video generation');
+      return generateMockVideoResponse(text);
+    }
+  },
+  
+  /**
+   * Get video status via Supabase Edge Function
+   */
+  getVideoStatusViaEdgeFunction: async (videoId: string): Promise<any> => {
+    try {
+      const response = await axios.get(
+        `${SUPABASE_URL}/functions/v1/video-generation/${videoId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_FUNCTION_KEY}`
+          }
+        }
+      );
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Edge function video status check failed:', error);
+      
+      // Fall back to mock status
+      console.log('⚠️ Falling back to mock video status');
+      return getMockVideoStatus(videoId);
+    }
+  },
   
   /**
    * Get video generation status
@@ -204,56 +244,17 @@ class VideoService {
       };
     }
   }
+      // Try to use Supabase Edge Function if configured
   
-  /**
-   * Get mock avatars (for development/testing)
-   */
-  private getMockAvatars(): Avatar[] {
-    console.log('🔄 Generating mock avatars');
-    
-    return [
-      {
-        id: 'avatar-1',
-        name: 'Professional Male',
-        thumbnailUrl: 'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=100',
-        category: 'professional',
-        gender: 'male'
-      },
-      {
-        id: 'avatar-2',
-        name: 'Professional Female',
-        thumbnailUrl: 'https://images.pexels.com/photos/2381069/pexels-photo-2381069.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=100',
-        category: 'professional',
-        gender: 'female'
-      },
-      {
-        id: 'avatar-3',
-        name: 'Casual Male',
-        thumbnailUrl: 'https://images.pexels.com/photos/775358/pexels-photo-775358.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=100',
-        category: 'casual',
-        gender: 'male'
-      },
-      {
-        id: 'avatar-4',
-        name: 'Casual Female',
-        thumbnailUrl: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=100',
-        category: 'casual',
-        gender: 'female'
-      }
-    ];
-  }
-}
-
-// Create singleton instance
-const videoService = new VideoService();
-
-export default videoService;
-
+      if (SUPABASE_URL && SUPABASE_FUNCTION_KEY && !SUPABASE_URL.includes('your_')) {
 // Type declarations
+        return await videoService.generateVideoViaEdgeFunction(text, options);
 export interface Avatar {
+      }
   id: string;
+      // Fallback to local implementation
   name: string;
-  thumbnailUrl: string;
+      console.log('⚠️ Using local video generation (mock)');
   category?: string;
   gender?: string;
   description?: string;

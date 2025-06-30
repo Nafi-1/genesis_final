@@ -12,6 +12,32 @@ export const simulationService = {
   runSimulation: async (guildId: string, config: SimulationConfig): Promise<SimulationResult> => {
     console.log(`🧪 Running enhanced simulation for guild: ${guildId} with config:`, config);
 
+
+    // Check if Slack integration is enabled
+    const slackEnabled = config.parameters?.slackEnabled || false;
+    const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
+    
+    // If Slack is enabled and we have a webhook URL, send a test message
+    if (slackEnabled && slackWebhookUrl) {
+      try {
+        console.log('🔄 Sending test message to Slack webhook');
+        
+        // Send a test message to Slack
+        await fetch(slackWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: `🧪 *GenesisOS Simulation Started*\n\nGuild: ${guildId}\nTime: ${new Date().toLocaleString()}\nModel: ${config.parameters?.ai_model || 'gemini-flash'}\nType: ${config.test_scenarios?.[0] || 'comprehensive'}`
+          })
+        });
+        
+        console.log('✅ Test message sent to Slack successfully');
+      } catch (error) {
+        console.error('Failed to send test message to Slack:', error);
+      }
+    }
     // Check if Slack integration is enabled
     const slackEnabled = config.parameters?.slackEnabled || false;
     const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
@@ -308,6 +334,12 @@ export interface SimulationConfig {
     ai_model?: string;
     slackEnabled?: boolean;
     slackWebhookUrl?: string;
+    network_latency?: boolean;
+    api_timeouts?: boolean;
+    performance_profiling?: boolean;
+    ai_model?: string;
+    slackEnabled?: boolean;
+    slackWebhookUrl?: string;
   };
   test_scenarios?: string[];
 }
@@ -333,6 +365,8 @@ export interface SimulationResult {
     success_rate: number;
     total_operations: number;
     peak_concurrent_operations: number;
+    ai_model?: string;
+    token_usage?: number;
     ai_model?: string;
     token_usage?: number;
   };
