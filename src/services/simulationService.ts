@@ -13,118 +13,124 @@ export const simulationService = {
     console.log(`🧪 Running enhanced simulation for guild: ${guildId} with config:`, config);
 
     try {
-    try {
-    // Check if Slack integration is enabled
-    const slackEnabled = config.parameters?.slackEnabled || false;
-    const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
-    
-    // If Slack is enabled and we have a webhook URL, send a test message
-    if (slackEnabled && slackWebhookUrl) {
       try {
-        console.log('🔄 Sending test message to Slack webhook');
+        // Check if Slack integration is enabled
+        const slackEnabled = config.parameters?.slackEnabled || false;
+        const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
         
-        // Send a test message to Slack
-        await fetch(slackWebhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            text: `🧪 *GenesisOS Simulation Started*\n\nGuild: ${guildId}\nTime: ${new Date().toLocaleString()}\nModel: ${config.parameters?.ai_model || 'gemini-flash'}\nType: ${config.test_scenarios?.[0] || 'comprehensive'}`
-          })
+        // If Slack is enabled and we have a webhook URL, send a test message
+        if (slackEnabled && slackWebhookUrl) {
+          try {
+            console.log('🔄 Sending test message to Slack webhook');
+            
+            // Send a test message to Slack
+            await fetch(slackWebhookUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                text: `🧪 *GenesisOS Simulation Started*\n\nGuild: ${guildId}\nTime: ${new Date().toLocaleString()}\nModel: ${config.parameters?.ai_model || 'gemini-flash'}\nType: ${config.test_scenarios?.[0] || 'comprehensive'}`
+              })
+            });
+            
+            console.log('✅ Test message sent to Slack successfully');
+          } catch (error) {
+            console.error('Failed to send test message to Slack:', error);
+          }
+        }
+        // Try to use the orchestrator API
+        const response = await api.post('/api/simulation/run', {
+          ...config,
+          simulation_id: `sim-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          client_info: {
+            platform: navigator.platform,
+            userAgent: navigator.userAgent
+          }
         });
         
-        console.log('✅ Test message sent to Slack successfully');
+        return response.data;
       } catch (error) {
-        console.error('Failed to send test message to Slack:', error);
-      // Try to use the orchestrator API
-      const response = await api.post('/api/simulation/run', {
-        ...config,
-        simulation_id: `sim-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        client_info: {
-          platform: navigator.platform,
-          userAgent: navigator.userAgent
-        }
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error('Failed to run simulation via API, using fallback:', error);
-      
-      // If Slack is enabled, send a fallback message about the simulation results
-      if (slackEnabled && slackWebhookUrl) {
-        await sendSlackNotification(
-          slackWebhookUrl, 
-          guildId, 
-          config.parameters?.ai_model || 'gemini-flash',
-          Math.floor(Math.random() * 90) + 10
-        );
-      }
-      
-      try {
-        // Enhanced service discovery for simulation
-        const orchestratorUrls = [
-          import.meta.env.VITE_API_BASE_URL,
-          'http://localhost:3000',
-          'http://127.0.0.1:3000'
-        ].filter(Boolean);
-        
-        const endpoints = [
-          '/api/simulation/run',
-          '/simulation/run'
-        ];
-        
-        let executionError = null;
-        
-        // Try each orchestrator URL and endpoint
-        for (const baseUrl of orchestratorUrls) {
-          for (const endpoint of endpoints) {
-            try {
-              console.log(`🔄 Attempting to run simulation via ${baseUrl}${endpoint}`);
-              
-              const response = await axios.post(`${baseUrl}${endpoint}`, {
-                ...config
-              }, { 
-                timeout: 10000,
-                headers: { 'Content-Type': 'application/json' }
-              });
-              
-              if (response.data) {
-                console.log(`✅ Simulation started successfully via ${baseUrl}${endpoint}`);                
-                return response.data;
-              }
-            } catch (error: any) {
-              console.warn(`⚠️ Simulation execution failed at ${baseUrl}${endpoint}:`, 
-                error.response?.status || error.message);
-              executionError = error;
-            }
-          }
-        }
-        
-        // If all attempts fail, generate a mock simulation
-        console.error('❌ All simulation execution attempts failed:', executionError);
+        console.error('Failed to run simulation via API, using fallback:', error);
         
         // If Slack is enabled, send a fallback message about the simulation results
-        try {
-          if (slackEnabled && slackWebhookUrl) {
-            await sendSlackNotification(
-              slackWebhookUrl, 
-              guildId, 
-              config.parameters?.ai_model || 'gemini-flash', 
-              Math.floor(Math.random() * 90) + 10,
-              true
-            );
-          }
-        } catch (error) {
-          console.error('Failed to send fallback Slack notification:', error);
+        if (slackEnabled && slackWebhookUrl) {
+          await sendSlackNotification(
+            slackWebhookUrl, 
+            guildId, 
+            config.parameters?.ai_model || 'gemini-flash',
+            Math.floor(Math.random() * 90) + 10
+          );
         }
         
-        return generateMockSimulationResults(guildId, config);
-      } catch (error) {
-        console.error('❌ Simulation failed completely:', error);
-        return generateMockSimulationResults(guildId, config);
+        try {
+          // Enhanced service discovery for simulation
+          const orchestratorUrls = [
+            import.meta.env.VITE_API_BASE_URL,
+            'http://localhost:3000',
+            'http://127.0.0.1:3000'
+          ].filter(Boolean);
+          
+          const endpoints = [
+            '/api/simulation/run',
+            '/simulation/run'
+          ];
+          
+          let executionError = null;
+          
+          // Try each orchestrator URL and endpoint
+          for (const baseUrl of orchestratorUrls) {
+            for (const endpoint of endpoints) {
+              try {
+                console.log(`🔄 Attempting to run simulation via ${baseUrl}${endpoint}`);
+                
+                const response = await axios.post(`${baseUrl}${endpoint}`, {
+                  ...config
+                }, { 
+                  timeout: 10000,
+                  headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.data) {
+                  console.log(`✅ Simulation started successfully via ${baseUrl}${endpoint}`);                
+                  return response.data;
+                }
+              } catch (error: any) {
+                console.warn(`⚠️ Simulation execution failed at ${baseUrl}${endpoint}:`, 
+                  error.response?.status || error.message);
+                executionError = error;
+              }
+            }
+          }
+          
+          // If all attempts fail, generate a mock simulation
+          console.error('❌ All simulation execution attempts failed:', executionError);
+          
+          // If Slack is enabled, send a fallback message about the simulation results
+          try {
+            if (slackEnabled && slackWebhookUrl) {
+              await sendSlackNotification(
+                slackWebhookUrl, 
+                guildId, 
+                config.parameters?.ai_model || 'gemini-flash', 
+                Math.floor(Math.random() * 90) + 10,
+                true
+              );
+            }
+          } catch (error) {
+            console.error('Failed to send fallback Slack notification:', error);
+          }
+          
+          return generateMockSimulationResults(guildId, config);
+        } catch (error) {
+          console.error('❌ Simulation failed completely:', error);
+          return generateMockSimulationResults(guildId, config);
+        }
       }
+    } catch (error) {
+      console.error('Simulation failed:', error);
+      return generateMockSimulationResults(guildId, config);
     }
   },
   
