@@ -10,8 +10,7 @@ export const simulationService = {
    * Run a simulation for a guild
    */
   runSimulation: async (guildId: string, config: SimulationConfig): Promise<SimulationResult> => {
-    console.log(`🧪 Running simulation for guild: ${guildId}`);
-    console.log('Simulation config:', config);
+    console.log(`🧪 Running enhanced simulation for guild: ${guildId} with config:`, config);
 
     // Check if Slack integration is enabled
     const slackEnabled = config.parameters?.slackEnabled || false;
@@ -42,7 +41,13 @@ export const simulationService = {
     try {
       // Try to use the orchestrator API
       const response = await api.post('/api/simulation/run', {
-        ...config
+        ...config,
+        simulation_id: `sim-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        client_info: {
+          platform: navigator.platform,
+          userAgent: navigator.userAgent
+        }
       });
       
       return response.data;
@@ -351,17 +356,17 @@ function generateMockSimulationResults(guildId: string, config: any): Simulation
     }
   };
   
-  console.log('🧪 Generating mock simulation results with config:', configSummary);
+  console.log('🧪 Generating enhanced simulation results with config:', configSummary);
   
   // Get the preferred AI model
   const aiModel = config.parameters?.ai_model || localStorage.getItem('preferred_ai_model') || 'gemini-flash';
   
-  // Create a unique simulation ID
-  const simulationId = `sim-${uuid()}`;
-  
   // Check if Slack integration is enabled
   const slackEnabled = config.parameters?.slackEnabled || false;
   const slackWebhookUrl = config.parameters?.slackWebhookUrl || '';
+  
+  // Create a unique simulation ID
+  const simulationId = `sim-${uuid()}`;
   
   // Record start time
   const startTime = Date.now();

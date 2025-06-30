@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Play, CheckCircle, AlertCircle, ArrowRight, Brain, Zap, Clock, Settings, Cpu, Beaker, RefreshCw, MessageSquare } from 'lucide-react';
 import { useWizardStore } from '../../../stores/wizardStore';
 import { GlassCard } from '../../ui/GlassCard';
-import { EnhancedSimulationLab } from '../../simulation/EnhancedSimulationLab';
+import { SimulationLab } from '../../simulation/SimulationLab';
 import { HolographicButton } from '../../ui/HolographicButton';
 import { AIModelSelector } from '../../ui/AIModelSelector';
 import { Card, CardContent } from '../../ui/Card';
@@ -109,12 +109,12 @@ export const SimulationStep: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-6 flex flex-col items-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Simulation Lab
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-white mb-4">
+            Guild Simulation Lab
           </h1>
-          <p className="text-lg text-gray-600">
-            Test your guild in a realistic environment before deployment
+          <p className="text-lg text-gray-300">
+            {showLabView ? "Simple View" : "Interactive Lab"}
           </p>
         </div>
 
@@ -164,7 +164,7 @@ export const SimulationStep: React.FC = () => {
           </div>
 
           {showLabView ? (
-            <EnhancedSimulationLab
+            <SimulationLab
               guildId={blueprint?.suggested_structure.guild_name || 'test-guild'}
               agents={blueprint?.suggested_structure.agents || []}
               onResults={(results) => {
